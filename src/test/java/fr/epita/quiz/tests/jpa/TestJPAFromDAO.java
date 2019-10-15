@@ -3,8 +3,6 @@ package fr.epita.quiz.tests.jpa;
 import fr.epita.quiz.datamodel.Question;
 import fr.epita.quiz.services.QuestionDAO;
 import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +25,7 @@ public class TestJPAFromDAO {
         //don't create new DAO; if something is injected into the created instance then it has to be created through spring otherwise the injected fields will not be injected
         questionDAO.insert(qu);
         //need to assert something
-        Question retrievedQuestion = questionDAO.getQuestion(qu.getId());
+        Question retrievedQuestion = questionDAO.getById(qu.getId(), Question.class);
         Assert.assertNotNull(retrievedQuestion);
     }
 
@@ -37,10 +35,11 @@ public class TestJPAFromDAO {
         questionDAO.insert(qu);
 
         String update = "What does ORM stand for?";
-        questionDAO.update(qu.getId(), update);
+        qu.setContent(update);
+        questionDAO.update(qu);
         //need to assert something
-        Question retrievedQuestion = questionDAO.getQuestion(qu.getId());
-        Assert.assertEquals("What does ORM stand for?", retrievedQuestion.getContent());
+        Question retrievedQuestion = questionDAO.getById(qu.getId(), Question.class);
+        Assert.assertEquals(update, retrievedQuestion.getContent());
     }
 
     @Test
@@ -48,20 +47,18 @@ public class TestJPAFromDAO {
         Question qu = new Question("What is Dependency Injection?");
         questionDAO.insert(qu);
 
-        questionDAO.delete(qu.getId());
+        questionDAO.delete(qu);
         //need to assert something
-        Question retrievedQuestion = questionDAO.getQuestion(qu.getId());
+        Question retrievedQuestion = questionDAO.getById(qu.getId(), Question.class);
         Assert.assertNull(retrievedQuestion);
     }
 
     @Test
     public void testSearch() throws HibernateException {
-        Question qu = new Question("What is Dependency Injection?");
+        Question qu = new Question("Where are maven dependencies set?");
         questionDAO.insert(qu);
-        Question qu2 = new Question("Where are maven dependencies set?");
-        questionDAO.insert(qu2);
 
-        List<Question> resultList = questionDAO.search("%maven%");
+        List<Question> resultList = questionDAO.search(qu);
         Assert.assertTrue(resultList.size() > 0);
     }
 }
